@@ -2,8 +2,10 @@ package node
 
 import (
 	"math/rand"
-	"snow-consensus/consensus"
-	"snow-consensus/p2p"
+	"snow-consensus/snow-consensus/consensus"
+	"snow-consensus/snow-consensus/p2p"
+	// "snow-consensus/consensus"
+	// "snow-consensus/p2p"
 )
 
 type Node struct {
@@ -56,7 +58,7 @@ func (n *Node) collectPreferences(peers []int) []string {
 	preferences := make([]string, len(peers))
 	for i, peer := range peers {
 		n.network.SendMessage(peer, n.consensus.GetPreference())
-		preferences[i] = <-n.inbox
+		preferences[i] = <- n.inbox
 	}
 	return preferences
 }

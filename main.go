@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
-	"snow-consensus/node"
+	"snow-consensus/snow-consensus/node"
+
+	// "snow-consensus/node"
 	"sync"
 )
 

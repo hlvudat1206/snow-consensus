@@ -1,7 +1,8 @@
 package tests
 
 import (
-	"snow-consensus/node"
+	// "snow-consensus/node"
+	"snow-consensus/snow-consensus/node"
 	"testing"
 )
 
