@@ -1,7 +1,7 @@
-STEPS FOR RUN THE PROGRAM
+****STEPS TO RUN THE PROGRAM****
 
-****RUN main.go file****
+***RUN main.go file***
 go run main.go
 
-****RUN test file****
+***RUN test file***
 go test -v .\tests\
