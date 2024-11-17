@@ -1,3 +1,8 @@
+// Purpose
+// 1. Initializes a network of 200 nodes.
+// 2. Simulates consensus by running all nodes in parallel.
+// 3. Waits for all nodes to complete and checks for consensus.
+
 package main
 
 import (
@@ -25,6 +30,7 @@ func main() {
 	// Simulate node communication
 	for _, n := range nodes {
 		wg.Add(1)
+		// Starts the consensus process for each node in parallel using goroutines.
 		go func(n *node.Node) {
 			defer wg.Done()
 			n.Start()

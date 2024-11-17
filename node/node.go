@@ -1,6 +1,10 @@
+// Represents a node in the network.
+// Handles communication and consensus logic.
+
 package node
 
 import (
+	"log"
 	"math/rand"
 	"snow-consensus/snow-consensus/consensus"
 	"snow-consensus/snow-consensus/p2p"
@@ -12,9 +16,9 @@ import (
 type Node struct {
 	Id        int
 	network   *p2p.Network
-	Consensus *consensus.Snow // Expose the Snow consensus instance
-	peers     []int
-	inbox     chan interface{}
+	Consensus *consensus.Snow  // Expose the Snow consensus instance
+	peers     []int            // List of peer IDs that this node communicates with
+	inbox     chan interface{} // Channel for receiving messages
 }
 
 func NewNode(id, totalNodes int) *Node {
@@ -41,9 +45,11 @@ func NewNode(id, totalNodes int) *Node {
 
 func (n *Node) Start() {
 	for !n.Consensus.IsAccepted() {
-		sample := n.samplePeers()
-		preferences := n.collectPreferences(sample)
+		sample := n.samplePeers()                   // Randomly select peers
+		preferences := n.collectPreferences(sample) // Gather preferences
+		log.Printf("preferences is %v", preferences)
 		n.Consensus.Sample(preferences)
+		// time.Sleep(10 * time.Millisecond) // Prevent busy-waiting
 	}
 }
 
@@ -55,15 +61,6 @@ func (n *Node) samplePeers() []int {
 	return sample
 }
 
-//	func (n *Node) collectPreferences(peers []int) []string {
-//		preferences := make([]string, len(peers))
-//		for i, peer := range peers {
-//			n.network.SendMessage(peer, n.consensus.GetPreference())
-//			preferences[i] = <-n.inbox
-//			// fmt.Println("use i: ", i)
-//		}
-//		return preferences
-//	}
 func (n *Node) collectPreferences(peers []int) []string {
 	preferences := make([]string, len(peers))
 	var wg sync.WaitGroup
