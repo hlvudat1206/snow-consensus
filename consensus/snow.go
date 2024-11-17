@@ -1,7 +1,5 @@
 package consensus
 
-import "log"
-
 //configurable
 const (
 	SampleSize    = 10 // Number of peers to query per round
@@ -27,8 +25,6 @@ func (s *Snow) Sample(preferences []string) {
 	if s.accepted {
 		return
 	}
-	log.Printf("Current preference: %s", s.preference)
-
 	count := map[string]int{}
 	for _, pref := range preferences {
 		count[pref]++

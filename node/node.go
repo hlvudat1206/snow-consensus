@@ -47,7 +47,6 @@ func (n *Node) Start() {
 	for !n.Consensus.IsAccepted() {
 		sample := n.samplePeers()                   // Randomly select peers
 		preferences := n.collectPreferences(sample) // Gather preferences
-		log.Printf("preferences is %v", preferences)
 		n.Consensus.Sample(preferences)
 		// time.Sleep(10 * time.Millisecond) // Prevent busy-waiting
 	}
