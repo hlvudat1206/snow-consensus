@@ -4,7 +4,6 @@
 package node
 
 import (
-	"log"
 	"math/rand"
 	"snow-consensus/snow-consensus/consensus"
 	"snow-consensus/snow-consensus/p2p"
