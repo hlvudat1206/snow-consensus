@@ -4,14 +4,15 @@ import (
 	"math/rand"
 	"snow-consensus/snow-consensus/consensus"
 	"snow-consensus/snow-consensus/p2p"
+	"sync"
 	// "snow-consensus/consensus"
 	// "snow-consensus/p2p"
 )
 
 type Node struct {
-	id        int
+	Id        int
 	network   *p2p.Network
-	consensus *consensus.Snow
+	Consensus *consensus.Snow // Expose the Snow consensus instance
 	peers     []int
 	inbox     chan interface{}
 }
@@ -30,19 +31,19 @@ func NewNode(id, totalNodes int) *Node {
 	}
 
 	return &Node{
-		id:        id,
+		Id:        id,
 		network:   net,
-		consensus: consensus.NewSnow(randomPreference()),
+		Consensus: consensus.NewSnow(randomPreference()),
 		peers:     peers,
 		inbox:     inbox,
 	}
 }
 
 func (n *Node) Start() {
-	for !n.consensus.IsAccepted() {
+	for !n.Consensus.IsAccepted() {
 		sample := n.samplePeers()
 		preferences := n.collectPreferences(sample)
-		n.consensus.Sample(preferences)
+		n.Consensus.Sample(preferences)
 	}
 }
 
@@ -54,12 +55,51 @@ func (n *Node) samplePeers() []int {
 	return sample
 }
 
+//	func (n *Node) collectPreferences(peers []int) []string {
+//		preferences := make([]string, len(peers))
+//		for i, peer := range peers {
+//			n.network.SendMessage(peer, n.consensus.GetPreference())
+//			preferences[i] = <-n.inbox
+//			// fmt.Println("use i: ", i)
+//		}
+//		return preferences
+//	}
 func (n *Node) collectPreferences(peers []int) []string {
 	preferences := make([]string, len(peers))
+	var wg sync.WaitGroup
+	mu := sync.Mutex{}
+
+	// Collect preferences from peers concurrently
 	for i, peer := range peers {
-		n.network.SendMessage(peer, n.consensus.GetPreference())
-		preferences[i] = <- n.inbox
+		wg.Add(1)
+		go func(i, peer int) {
+			defer wg.Done()
+
+			// Send message to the peer
+			n.network.SendMessage(peer, n.Consensus.GetPreference())
+
+			// Read response from the inbox (non-blocking approach)
+			select {
+			case msg := <-n.inbox:
+				if preference, ok := msg.(string); ok {
+					mu.Lock()
+					preferences[i] = preference
+					mu.Unlock()
+				} else {
+					mu.Lock()
+					preferences[i] = "" // Fallback for invalid message type
+					mu.Unlock()
+				}
+			default:
+				mu.Lock()
+				preferences[i] = "" // Fallback for no response
+				mu.Unlock()
+			}
+		}(i, peer)
 	}
+
+	// Wait for all goroutines to finish
+	wg.Wait()
 	return preferences
 }
 
