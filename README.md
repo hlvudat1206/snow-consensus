@@ -1,3 +1,5 @@
+STEPS FOR RUN THE PROGRAM
+
 ****RUN main.go file****
 go run main.go
 
