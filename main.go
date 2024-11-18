@@ -22,21 +22,47 @@ func main() {
 	var wg sync.WaitGroup
 	nodes := make([]*node.Node, TotalNodes)
 
-	// Create and start nodes
+	// create and start nodes
 	for i := 0; i < TotalNodes; i++ {
 		nodes[i] = node.NewNode(i, TotalNodes)
 	}
 
-	// Simulate node communication
-	for _, n := range nodes {
+	// create a channel to distribute nodes among workers
+	nodeJobs := make(chan *node.Node, TotalNodes)
+
+	// start 10 threads
+	for t := 0; t < Processes; t++ {
 		wg.Add(1)
-		// Starts the consensus process for each node in parallel using goroutines.
-		go func(n *node.Node) {
+		go func(workerID int) {
 			defer wg.Done()
-			n.Start()
-		}(n)
+			for n := range nodeJobs {
+				fmt.Printf("worker %d processing node %d\n", workerID, n.Id)
+				n.Start() // simulate consensus process for this node
+			}
+		}(t)
 	}
 
+	for _, n := range nodes {
+		nodeJobs <- n
+	}
+	close(nodeJobs)
+
+	// wait for all workers to finish
 	wg.Wait()
-	fmt.Println("Consensus reached!")
+
+	// check if consensus was reached
+	preference := nodes[0].Consensus.GetPreference()
+	allAgreed := true
+	for _, n := range nodes {
+		if n.Consensus.GetPreference() != preference {
+			allAgreed = false
+			break
+		}
+	}
+
+	if allAgreed {
+		fmt.Printf("Consensus reached! All nodes agree on: %s\n", preference)
+	} else {
+		fmt.Println("Consensus was not reached by all nodes.")
+	}
 }
